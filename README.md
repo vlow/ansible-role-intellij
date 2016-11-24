@@ -1,7 +1,7 @@
 ansible-role-intellij
 =====================
 
-Ansible role to install IntelliJ IDEA Community Edition
+Ansible role to install IntelliJ IDEA Ultimate Edition
 
 # Usage
 ```
@@ -12,6 +12,3 @@ Ansible role to install IntelliJ IDEA Community Edition
 
 # Notes
 - Required Java installed
-
-# Links
-- https://galaxy.ansible.com/list#/roles/3110

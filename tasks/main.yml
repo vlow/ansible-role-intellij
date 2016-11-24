@@ -17,7 +17,7 @@
   tags: ["packages","intellij"]
 
 - set_fact:
-    intellij_version: "{{ intellij_releases_response.json.IIC.0.version }}"
+    intellij_version: "{{ intellij_releases_response.json.IIU.0.version }}"
   when: intellij_version == 'latest'
   tags: ["packages","intellij"]
 

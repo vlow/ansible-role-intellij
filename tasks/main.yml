@@ -85,20 +85,20 @@
   register: result_intellij_folder_name
   tags: ["configuration","intellij"]
 
-- name: Ensure IntelliJ is configured
+- name: IntelliJ is configured
   template:
           src: idea.properties.j2
           dest: "{{intellij_app_install_dir}}/{{intellij_folder_name}}/bin/idea.properties"
   tags: ["configuration","intellij"]
 
-- name: Ensure IntelliJ bin exist
+- name: IntelliJ starter exist
   template: 
     src: intellij.j2
     dest: /usr/bin/intellij
-    mode: 755
+    mode: 0755
   tags: ["configuration","intellij"]
 
-- name: Ensure IntelliJ shortcut is present
+- name: IntelliJ shortcut is present
   template:
     src: intellij.desktop.j2
     dest: /usr/share/applications/intellij.desktop

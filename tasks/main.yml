@@ -26,56 +26,80 @@
         path: "{{ intellij_install_dir }}/version.txt"
   register: version_file_stat
 
-- command: "cat {{ intellij_install_dir }}/version.txt | sed s/^version=//"
-  register: installed_version
-  when: version_file_stat.exists == True
+- command: "bash -c 'cat {{ intellij_install_dir }}/version.txt | sed s/^version=//'"
+  register: installed_version_output
+  when: version_file_stat.stat.exists == True
+
+- set_fact:
+    installed_version: "{{ installed_version_output.stdout }}"
+  when: version_file_stat.stat.exists == True
 
 - set_fact:
     installed_version: ""
-  when: version_file_stat.exists == False
+  when: version_file_stat.stat.exists == False
+
+# Uninstall the current version, if we're about to install another version
+- name: Old IntelliJ versions are uninstalled
+  file:
+    state: absent
+    dest: "{{ intellij_app_install_dir }}"
+  tags: ["packages","intellij"]
+  when: intellij_version != installed_version
 
 # Install, if we have to...
-- name: Download intellij
-  get_url: url={{intellij_url}} dest={{intellij_tmp}}
+- debug:
+    msg: "intellij_version={{ intellij_version }} installed_version={{ installed_version }}"
+
+- name: IntelliJ installation package is present
+  get_url: 
+    url: "{{intellij_url}}"
+    dest: "{{intellij_tmp}}"
   tags: ["packages","intellij"]
   when: intellij_version != installed_version
 
 - name: Installation directory exists
   file:
-    state=directory
-    mode=0755
-    dest={{intellij_install_dir}}
+    state: directory
+    mode: 0755
+    dest: "{{ intellij_app_install_dir }}"
   tags: ["packages","intellij"]
   when: intellij_version != installed_version
 
 - name: IntelliJ installation package is unarchived
   unarchive:
-    copy=no
-    src={{intellij_tmp}}
-    dest={{intellij_install_dir}}
+    copy: no
+    src: "{{intellij_tmp}}"
+    dest: "{{intellij_app_install_dir}}"
   tags: ["packages","intellij"]
   when: intellij_version != installed_version
 
 - name: Version file has correct version
   lineinfile:
-    create: yes
-    path: "{{ intellij_install_dir }}/version.txt"
+    dest: "{{ intellij_install_dir }}/version.txt"
     regexp: "^version="
     line: "version={{ intellij_version }}"
+    create: yes
 
-- name: Retrieve intellij dir name
-  command: ls -t {{intellij_install_dir}}
+- name: Retrieve IntelliJ dir name
+  command: "ls -t {{intellij_app_install_dir}}"
   register: result_intellij_folder_name
   tags: ["configuration","intellij"]
 
-- name: Ensure intellij is configured
-  template: src=idea.properties.j2 dest={{intellij_install_dir}}/{{intellij_folder_name}}/bin/idea.properties
+- name: Ensure IntelliJ is configured
+  template:
+          src: idea.properties.j2
+          dest: "{{intellij_app_install_dir}}/{{intellij_folder_name}}/bin/idea.properties"
   tags: ["configuration","intellij"]
 
-- name: Ensure intellij bin exist
-  template: src=intellij.j2 dest=/usr/bin/intellij mode=755
+- name: Ensure IntelliJ bin exist
+  template: 
+    src: intellij.j2
+    dest: /usr/bin/intellij
+    mode: 755
   tags: ["configuration","intellij"]
 
-- name: Ensure intellij shortcut is present
-  template: src=intellij.desktop.j2 dest=/usr/share/applications/intellij.desktop
+- name: Ensure IntelliJ shortcut is present
+  template:
+    src: intellij.desktop.j2
+    dest: /usr/share/applications/intellij.desktop
   tags: ["configuration","intellij"]
